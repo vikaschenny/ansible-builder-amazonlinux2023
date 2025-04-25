@@ -134,6 +134,7 @@ jobs:
       toxenv: >-
         ${{ matrix.toxenv }}
       tox-run-posargs: >-
+        --run-destructive
         --cov-report=xml:.tox/.tmp/.test-results/pytest-${{
           matrix.python-version
         }}/cobertura.xml
@@ -141,6 +142,7 @@ jobs:
           matrix.python-version
         }}/test.xml
       tox-rerun-posargs: >-
+        --run-destructive
         --no-cov
         -vvvvv
         --lf
