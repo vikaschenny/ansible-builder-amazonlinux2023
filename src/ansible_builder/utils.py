@@ -183,7 +183,10 @@ def copy_file(source: str, dest: str, ignore_mtime: bool = False) -> bool:
         raise Exception(f"Source {source} can not be a directory. Please use copy_directory instead.")
     if Path(dest).is_dir():
         raise Exception(f"Destination {dest} can not be a directory. Please use copy_directory instead.")
-    if not os.path.exists(dest):
+    if Path(source).is_symlink() and Path(dest).is_symlink() and os.readlink(source) == os.readlink(dest):
+        logger.debug("Symlink %s already exists and matches.", dest)
+        should_copy = False
+    elif not os.path.exists(dest):
         logger.debug("File %s will be created.", dest)
         should_copy = True
     elif not filecmp.cmp(source, dest, shallow=False):
@@ -194,7 +197,10 @@ def copy_file(source: str, dest: str, ignore_mtime: bool = False) -> bool:
         should_copy = True
 
     if should_copy:
-        shutil.copy2(source, dest)
+        if Path(dest).is_symlink() or (Path(source).is_symlink() and os.path.exists(dest)):
+            os.unlink(dest)
+
+        shutil.copy2(source, dest, follow_symlinks=False)
     else:
         logger.debug("File %s is already up-to-date.", dest)
 
